@@ -7,7 +7,7 @@ const authorizeApplication = () => {
 
 // TODO #3.1: Change group number
 const getGroupNumber = () => {
-  return 99;
+  return 2;
 };
 
 // Example: Send Get user profile ("GET") request to backend server and show the response on the webpage
@@ -22,6 +22,7 @@ const getUserProfile = async () => {
   )
     .then((response) => response.json())
     .then((data) => {
+      console.log(data);
       console.log(data.user);
       document.getElementById(
         "eng-name-info"
@@ -37,9 +38,25 @@ const getUserProfile = async () => {
 //            and display the result on the webpage
 const getCompEngEssCid = async () => {
   document.getElementById("ces-cid-value").innerHTML = "";
-  console.log(
+  const options = {
+    method: "GET",
+    credentials: "include",
+  }
+  await fetch(`http://${backendIPAddress}/courseville/get_courses`, options)
+    .then((response) => response.json())
+    .then((data) => data.data.student)
+    .then((courses) => {
+      for (let i = 0; i < courses.length; i++) {
+        if (courses[i].course_no == "2110221") {
+          document.getElementById("ces-cid-value").innerHTML = `${courses[i].cv_cid}`; 
+          break;
+        }
+      }
+    })
+    .catch((error) => console.error(error));
+  /*console.log(
     "This function should fetch 'get courses' route from backend server and find cv_cid value of Comp Eng Ess."
-  );
+  );*/
 };
 
 // TODO #3.5: Send Get Course Assignments ("GET") request with cv_cid to backend server
@@ -48,10 +65,29 @@ const createCompEngEssAssignmentTable = async () => {
   const table_body = document.getElementById("main-table-body");
   table_body.innerHTML = "";
   const cv_cid = document.getElementById("ces-cid-value").innerHTML;
+  
+  const options = {
+    method: "GET",
+    credentials: "include",
+  };
 
-  console.log(
+  await fetch(`http://${backendIPAddress}/courseville/get_course_assignments/${cv_cid}`, options)
+    .then((response) => response.json())
+    .then((data) => data.data)
+    .then((assignments) => {
+      assignments.map((item) => {
+        table_body.innerHTML += `
+          <tr id=${item.itemid}>
+            <td>${item.itemid}</td>
+            <td>${item.title}</td>
+          </tr>
+          `;
+      })
+    })
+    .catch((error) => console.error(error));
+  /*console.log(
     "This function should fetch 'get course assignments' route from backend server and show assignments in the table."
-  );
+  );*/
 };
 
 const logout = async () => {

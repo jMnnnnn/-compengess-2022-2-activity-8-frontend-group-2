@@ -5,7 +5,7 @@ let itemsData;
 
 // TODO #2.1: Edit group number
 const getGroupNumber = () => {
-  return 99;
+  return 2;
 };
 
 // TODO #2.2: Show group members
@@ -28,7 +28,7 @@ const showGroupMembers = async () => {
           <li>${member.full_name}</li>
           `;
         // ----------------- FILL IN YOUR CODE UNDER THIS AREA ONLY ----------------- //
-        member_dropdown.innerHTML += ``;
+        member_dropdown.innerHTML += `<option value="${member.full_name}">${member.full_name}</option>`;
         // ----------------- FILL IN YOUR CODE ABOVE THIS AREA ONLY ----------------- //
       });
     })
@@ -37,9 +37,19 @@ const showGroupMembers = async () => {
 
 // TODO #2.3: Send Get items ("GET") request to backend server and store the response in itemsData variable
 const getItemsFromDB = async () => {
-  console.log(
+  const options = {
+    method: "GET",
+    credentials: "include",
+  };
+  await fetch(`http://${backendIPAddress}/items/`, options)
+    .then((response) => response.json())
+    .then((data) => {
+      itemsData = data;
+    })
+    .catch((error) => console.error(error));
+  /*console.log(
     "This function should fetch 'get items' route from backend server."
-  );
+  );*/
 };
 
 // TODO #2.4: Show items in table (Sort itemsData variable based on created_date in ascending order)
@@ -47,15 +57,15 @@ const showItemsInTable = (itemsData) => {
   const table_body = document.getElementById("main-table-body");
   table_body.innerHTML = "";
   // ----------------- FILL IN YOUR CODE UNDER THIS AREA ONLY ----------------- //
-
+  itemsData.sort((a,b) => (a.created_date > b.created_date) ? 1 : ((b.created_date > a.created_date) ? -1 : 0))
   // ----------------- FILL IN YOUR CODE ABOVE THIS AREA ONLY ----------------- //
   itemsData.map((item) => {
     // ----------------- FILL IN YOUR CODE UNDER THIS AREA ONLY ----------------- //
     table_body.innerHTML += `
         <tr id="${item.item_id}">
             <td>${item.item}</td>
-            <td>Name</td>
-            <td>Price</td>
+            <td>${item.name}</td>
+            <td>${item.price}</td>
             <td><button class="delete-row" onclick="deleteItem('${item.item_id}')">ลบ</button></td>
         </tr>
         `;
@@ -69,16 +79,53 @@ const addItem = async () => {
   const name = document.getElementById("name-to-add").value;
   const price = document.getElementById("price-to-add").value;
 
-  console.log(
+  const itemToAdd = {
+    item: item,
+    name: name,
+    price: price
+  }
+
+  const options = {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(itemToAdd)
+  }
+
+  await fetch(`http://${backendIPAddress}/items/`, options)
+    .then((response) => {
+      document.getElementById("item-to-add").value = "";
+      document.getElementById("name-to-add").value = 0;
+      document.getElementById("price-to-add").value = "";
+    })
+    .catch((error) => console.error(error));
+    
+    await getItemsFromDB();
+    showItemsInTable(itemsData);
+  /*console.log(
     "This function should fetch 'add item' route from backend server and update items in the table."
-  );
+  );*/
 };
 
 // TODO 2.6: Send Delete an item ("DELETE") request to backend server and update items in the table
 const deleteItem = async (item_id) => {
-  console.log(
+  const options = {
+    method: "DELETE",
+    credentials: "include",
+  }
+
+  await fetch(`http://${backendIPAddress}/items/${item_id}`, options)
+    .then((response) => {
+    })
+    .catch((error) => console.error(error));
+
+    await getItemsFromDB();
+    showItemsInTable(itemsData);
+  /*console.log(
     "This function should fetch 'delete item' route in backend server and update items in the table."
-  );
+  );*/
 };
 
 const redrawDOM = () => {
